@@ -168,7 +168,7 @@ Commands:
             if rc == 0:
                 print("started")
             elif self.check() == 0:
-                print("already started (%s)" % self.getpid())
+                print("already started")
             else:
                 print("not started!")
         elif command == "stop":
@@ -182,7 +182,7 @@ Commands:
         elif command == "check":
             rc = self.check()
             if rc == 0:
-                print("running (%s)" % self.getpid())
+                print("running")
             else:
                 print("not running")
         elif command == "getpid":
