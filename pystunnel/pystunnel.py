@@ -14,14 +14,11 @@ from six.moves import input
 class StunnelConfig:
     """Represent a stunnel configuration"""
 
-    _section_re = re.compile(r"\[(.*)\]")
-    _foreground_re = re.compile(r"foreground\s*=\s*(.*)")
     _pid_file_re = re.compile(r"pid\s*=\s*(.*)")
 
     def __init__(self, config_file):
         self.config_file = config_file
         self.pid_file = None
-        self.foreground = False
         self._read_config()
 
     def _read_config(self):
@@ -30,18 +27,10 @@ class StunnelConfig:
             with open(self.config_file, "rt") as f:
                 lines = f.readlines()
             for line in lines:
-                line = line.strip()
-                match = self._section_re.match(line)
-                if match:
-                    return
-                match = self._pid_file_re.match(line)
+                match = self._pid_file_re.match(line.strip())
                 if match:
                     self.pid_file = match.group(1)
-                else:
-                    match = self._foreground_re.match(line)
-                    if match:
-                        if match.group(1) == "yes":
-                            self.foreground = True
+                    return
 
 
 class Stunnel(StunnelConfig):
@@ -66,24 +55,26 @@ class Stunnel(StunnelConfig):
 
     Return Codes:
         0 means OK, 1 or higher means error.
-
-        The start command can fail for a variety of reasons, the most common
-        being bad or missing configuration files. Inspecting the config_file,
-        pid_file, and foreground attributes may provide hints on the nature
-        of the error.
     """
 
     def __init__(self, config_file):
         StunnelConfig.__init__(self, config_file)
 
     def start(self):
-        if self.pid_file and not self.foreground and self.check() == 1:
-            return subprocess.call('stunnel "%s"' % self.config_file, shell=True);
+        if self.check() == 1:
+            try:
+                config_file = '"%s"' % self.config_file if self.config_file else ""
+                return subprocess.call("stunnel %s" % config_file, shell=True);
+            except KeyboardInterrupt:
+                pass
         return 1
 
     def stop(self):
         if self.check() == 0:
-            return subprocess.call("kill %d" % self.getpid(), shell=True)
+            try:
+                return subprocess.call("kill %d" % self.getpid(), shell=True)
+            except KeyboardInterrupt:
+                pass
         return 1
 
     def check(self):
@@ -104,7 +95,7 @@ class Stunnel(StunnelConfig):
 
 
 class PyStunnel(Stunnel):
-    """Usage: pystunnel options [command]
+    """Usage: pystunnel [options] [command]
 
 Start and stop a stunnel instance from the command line
 
@@ -145,19 +136,6 @@ Commands:
             elif name in ("-v", "--version"):
                 print("pystunnel", get_version() or "(unknown version)")
                 sys.exit(0)
-
-        if not self.config_file:
-            print("option -c is required")
-            sys.exit(1)
-        elif not os.path.isfile(self.config_file):
-            print("no such file:", self.config_file)
-            sys.exit(1)
-        elif not self.pid_file:
-            print("must set pid = /path/to/pid-file in", self.config_file)
-            sys.exit(1)
-        elif self.foreground:
-            print("must set foreground = no in", self.config_file)
-            sys.exit(1)
 
         return args
 
