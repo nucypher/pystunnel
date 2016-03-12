@@ -8,6 +8,8 @@ import re
 import subprocess
 import getopt
 
+from six.moves import input
+
 
 class StunnelConfig:
     """Represent a stunnel configuration"""
@@ -91,11 +93,11 @@ class Stunnel(StunnelConfig):
     def getpid(self):
         pid = -1
         if self.pid_file and os.path.isfile(self.pid_file):
-            with open(self.pid_file, "rb") as f:
-                bpid = f.read(16)
-                if bpid:
+            with open(self.pid_file, "rt") as f:
+                pidstr = f.read(16)
+                if pidstr:
                     try:
-                        pid = int(bpid, 10)
+                        pid = int(pidstr, 10)
                     except ValueError:
                         pass
         return pid
@@ -130,7 +132,7 @@ Commands:
     def parse_args(self, args):
         try:
             options, args = getopt.gnu_getopt(args, "c:hv", ("stunnel-config=", "help", "version"))
-        except getopt.GetoptError, e:
+        except getopt.GetoptError as e:
             print(e.msg)
             sys.exit(1)
 
@@ -203,7 +205,7 @@ Commands:
         enable_readline()
         while True:
             try:
-                command = raw_input("pystunnel> ")
+                command = input("pystunnel> ")
                 command = command.strip()
             except (EOFError, KeyboardInterrupt):
                 print()
