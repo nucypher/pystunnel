@@ -141,8 +141,7 @@ Commands:
                 print(self.__doc__)
                 sys.exit(0)
             elif name in ("-v", "--version"):
-                import pkg_resources
-                print("pystunnel", pkg_resources.get_distribution("pystunnel").version)
+                print("pystunnel", get_version() or "(unknown version)")
                 sys.exit(0)
 
         if not self.config_file:
@@ -201,6 +200,7 @@ Commands:
 
     def loop(self):
         rc = 0
+        enable_readline()
         while True:
             try:
                 command = raw_input("pystunnel> ")
@@ -225,6 +225,22 @@ Commands:
             return self.single(args[0])
         else:
             return self.loop()
+
+
+def get_version():
+    try:
+        import pkg_resources
+    except ImportError:
+        return ""
+    else:
+        return pkg_resources.get_distribution("pystunnel").version
+
+
+def enable_readline():
+    try:
+        import readline
+    except ImportError:
+        pass
 
 
 def main(args=None):
