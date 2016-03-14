@@ -2,11 +2,15 @@ from setuptools import setup, find_packages
 
 version = '1.0a1'
 
+import sys, functools
+if sys.version_info[0] >= 3:
+    open = functools.partial(open, encoding='utf-8')
+
 setup(name='pystunnel',
       version=version,
       description='Python interface to stunnel',
-      #long_description=open('README.rst').read() + '\n' +
-      #                 open('CHANGES.rst').read(),
+      long_description=open('README.rst').read() + '\n' +
+                       open('CHANGES.rst').read(),
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',
