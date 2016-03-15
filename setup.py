@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0a1'
+version = '1.0a2'
 
 import sys, functools
 if sys.version_info[0] >= 3:
